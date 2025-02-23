@@ -46,7 +46,7 @@ public class UserController {
     private UserQuestionRepository userQuestionRepository;
 
     @Autowired
-    private QuestionRepository  questionRepository;
+    private QuestionRepository questionRepository;
     @Autowired
     private NoticeRepository noticeRepository;
 
@@ -69,6 +69,7 @@ public class UserController {
 
         return "normal/user_dashboard";
     }
+    //hello
 
     /*This Handler is used to open the add contact page when the user clicks on /add-contact link or button*/
     @GetMapping("/add-contact")
@@ -224,22 +225,22 @@ public class UserController {
         String userName = user.getName();
 
         int userId = user.getId();
-        Pageable pageable = PageRequest.of(pageNumber-1,1);
+        Pageable pageable = PageRequest.of(pageNumber - 1, 1);
         Page<Question> questionPage = userQuestionService.getAssignedQuestion(userId, pageable);
         model.addAttribute("userId", userId);
         model.addAttribute("questions", questionPage);
         model.addAttribute("pageNumber", pageNumber);
         model.addAttribute("totalPages", questionPage.getTotalPages());
-        System.out.println("UserId : "+userId+ ":Page number : "+pageNumber+ " :total pages :"+questionPage.getTotalPages());
-        if(user!=null && !user.isHasAssignedQuestions()){
+        System.out.println("UserId : " + userId + ":Page number : " + pageNumber + " :total pages :" + questionPage.getTotalPages());
+        if (user != null && !user.isHasAssignedQuestions()) {
             return "normal/not_assigned";
         }
 
 
-        if (user.getScore()>0){
-            int score= user.getScore();
-            model.addAttribute("score",score);
-            model.addAttribute("name",userName);
+        if (user.getScore() > 0) {
+            int score = user.getScore();
+            model.addAttribute("score", score);
+            model.addAttribute("name", userName);
             return "normal/exam_completed";
         }
 
@@ -256,7 +257,7 @@ public class UserController {
         List<Long> questionIds = userQuestions.stream()
                 .map(UserQuestion::getQuestionId)
                 .collect(Collectors.toList());
-        System.out.println("questionIds : "+questionIds);
+        System.out.println("questionIds : " + questionIds);
         // Return the list of question IDs
         return questionIds;
     }
@@ -319,11 +320,12 @@ public class UserController {
         user.setEndTime(endTime);
         userRepository.save(user);
     }
+
     @GetMapping("/notices")
     public String getAllNotices(Model model) {
         List<Notice> notices = noticeRepository.findAll();
         model.addAttribute("notices", notices);
-        model.addAttribute("title","notice page");
+        model.addAttribute("title", "notice page");
         return "normal/notices-page";
     }
 

@@ -6,7 +6,6 @@ pipeline {
         BRANCH = 'develop'  // Specify the branch to pull from
         BUILD_DIR = 'target'  // Default Maven build directory
         JAR_NAME = 'EXAM_MANAGEMENT-0.0.1-SNAPSHOT.jar'  // Change this to your application's JAR file name
-        CREDENTIALS_ID = '7228f950-59b4-4e3c-aaed-dcfc1b431ea0'  // The Jenkins credential ID
     }
 
     stages {
