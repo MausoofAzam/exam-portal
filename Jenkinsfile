@@ -1,45 +1,43 @@
 pipeline {
-    agent any  // Runs on any available agent (Jenkins node)
+    agent any
 
     environment {
-        REPO_URL = 'https://github.com/MausoofAzam/exam-portal.git'
-        BRANCH = 'develop'  // Specify the branch to pull from
-        BUILD_DIR = 'target'  // Default Maven build directory
-        JAR_NAME = 'EXAM_MANAGEMENT-0.0.1-SNAPSHOT.jar'  // Change this to your application's JAR file name
+        DB_URL = 'jdbc:postgresql://localhost:5432/examportal'
+        DB_USER = 'root'
+        DB_PASSWORD = '0000'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                echo 'Cloning repository...'
-                git branch: "${BRANCH}", url: "${REPO_URL}"
-                // Fetches code from GitHub
+                git 'https://github.com/MausoofAzam/exam-portal'
             }
         }
 
-        stage('Build JAR') {
+        stage('Build with Maven') {
             steps {
-                echo 'Building JAR file using Maven...'
-                sh 'mvn clean package -DskipTests'
-                // Runs Maven to build the project and create a JAR file
+                bat 'mvn clean package'
             }
         }
 
-        stage('Run Application') {
+        stage('Run Tests') {
             steps {
-                echo 'Running Java application...'
-                sh "java -jar ${BUILD_DIR}/${JAR_NAME}"
-                // Runs the generated JAR file
+                bat 'mvn test'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                bat 'java -jar target/EXAM_MANAGEMENT-0.0.1-SNAPSHOT.jar'
             }
         }
     }
-
-    post {
-        success {
-            echo 'Pipeline executed successfully!'
+     post {
+            success {
+                echo 'Pipeline executed successfully!'
+            }
+            failure {
+                echo 'Pipeline failed. Check logs for errors.'
+            }
         }
-        failure {
-            echo 'Pipeline failed. Check logs for errors.'
-        }
-    }
 }
