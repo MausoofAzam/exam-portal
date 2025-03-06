@@ -2,27 +2,27 @@ pipeline {
     agent any
 
     environment {
-        API_URL = 'http://localhost:8080/api/build-status'  // API to store build status
+        DB_HOST = 'localhost'
+        DB_PORT = '3306'
+        DB_NAME = 'examportal'
+        DB_USER = 'root'
+        DB_PASSWORD = '0000'
         JOB_NAME = 'SpringBoot-CI-CD'
     }
 
-    triggers {
-        githubPush()  // Trigger on push to GitHub
-    }
-
     stages {
-        stage('Initialize Build Status') {
+        stage('Initialize Build Tracking') {
             steps {
                 script {
-                    def buildNumber = env.BUILD_NUMBER
-                    def jsonPayload = """{
-                        "jobName": "${JOB_NAME}",
-                        "buildNumber": ${buildNumber},
-                        "status": "IN_PROGRESS"
-                    }"""
+                    def buildNumber = currentBuild.number
+                    def startTime = new Date().format("yyyy-MM-dd HH:mm:ss")
 
-                    echo "📡 Sending build start status..."
-                    bat "curl -X POST ${API_URL} -H \"Content-Type: application/json\" -d '${jsonPayload}'"
+                    echo "🚀 Inserting build STARTED status into MySQL..."
+
+                    bat """
+                        mysql -h %DB_HOST% -u %DB_USER% -p%DB_PASSWORD% -D %DB_NAME% -e "INSERT INTO jenkins_builds (job_name, build_number, status, start_time)
+                        VALUES ('%JOB_NAME%', ${buildNumber}, 'IN_PROGRESS', '${startTime}');"
+                    """
                 }
             }
         }
@@ -69,7 +69,6 @@ pipeline {
         stage('Stop Existing Application') {
             steps {
                 script {
-                    echo "🛑 Stopping any running application..."
                     bat 'taskkill /F /IM java.exe || echo "No existing application running"'
                 }
             }
@@ -92,32 +91,10 @@ pipeline {
     post {
         success {
             script {
-                def buildNumber = env.BUILD_NUMBER
-                def jsonPayload = """{
-                    "jobName": "${JOB_NAME}",
-                    "buildNumber": ${buildNumber},
-                    "status": "SUCCESS"
-                }"""
+                def buildNumber = currentBuild.number
+                def endTime = new Date().format("yyyy-MM-dd HH:mm:ss")
 
-                echo "📡 Sending success status..."
-                bat "curl -X POST ${API_URL} -H \"Content-Type: application/json\" -d '${jsonPayload}'"
-            }
-            echo "🎉 Build SUCCESS! Everything worked fine."
-        }
+                echo "🎉 Build SUCCESS! Updating MySQL..."
 
-        failure {
-            script {
-                def buildNumber = env.BUILD_NUMBER
-                def jsonPayload = """{
-                    "jobName": "${JOB_NAME}",
-                    "buildNumber": ${buildNumber},
-                    "status": "FAILED"
-                }"""
-
-                echo "📡 Sending failure status..."
-                bat "curl -X POST ${API_URL} -H \"Content-Type: application/json\" -d '${jsonPayload}'"
-            }
-            echo "🚨 Build FAILED! Check logs for errors."
-        }
-    }
-}
+                bat """
+                    mysql -h %DB_HOST% -u %DB_USER% -p%DB_PASSWOR
