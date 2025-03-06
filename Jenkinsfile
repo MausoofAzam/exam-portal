@@ -97,4 +97,23 @@ pipeline {
                 echo "🎉 Build SUCCESS! Updating MySQL..."
 
                 bat """
-                    mysql -h %DB_HOST% -u %DB_USER% -p%DB_PASSWOR
+                    mysql -h %DB_HOST% -u %DB_USER% -p%DB_PASSWORD% -D %DB_NAME% -e "UPDATE jenkins_builds SET status = 'SUCCESS', end_time = '${endTime}'
+                    WHERE job_name = '%JOB_NAME%' AND build_number = ${buildNumber};"
+                """
+            }
+        }
+        failure {
+            script {
+                def buildNumber = currentBuild.number
+                def endTime = new Date().format("yyyy-MM-dd HH:mm:ss")
+
+                echo "🚨 Build FAILED! Updating MySQL..."
+
+                bat """
+                    mysql -h %DB_HOST% -u %DB_USER% -p%DB_PASSWORD% -D %DB_NAME% -e "UPDATE jenkins_builds SET status = 'FAILED', end_time = '${endTime}'
+                    WHERE job_name = '%JOB_NAME%' AND build_number = ${buildNumber};"
+                """
+            }
+        }
+    }
+}
