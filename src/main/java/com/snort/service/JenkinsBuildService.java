@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class JenkinsBuildService {
@@ -13,21 +14,23 @@ public class JenkinsBuildService {
     @Autowired
     private JenkinsBuildRepository repository;
 
-    public void updateBuildStatus(JenkinsBuild build) {
-        JenkinsBuild existingBuild = repository.findByJobNameAndBuildNumber(build.getJobName(), build.getBuildNumber());
+    public JenkinsBuild logBuildStart(String jobName, Integer buildNumber) {
+        JenkinsBuild build = new JenkinsBuild();
+        build.setJobName(jobName);
+        build.setBuildNumber(buildNumber);
+        build.setStatus("IN_PROGRESS");
+        return repository.save(build);
+    }
 
-        if (existingBuild == null) {
-            // Insert new build status
-            repository.save(build);
-        } else {
-            // Update existing record
-            existingBuild.setStatus(build.getStatus());
-
-            if ("SUCCESS".equals(build.getStatus()) || "FAILED".equals(build.getStatus())) {
-                existingBuild.setEndTime(LocalDateTime.now());
-            }
-
-            repository.save(existingBuild);
+    public JenkinsBuild logBuildCompletion(String jobName, Integer buildNumber, String status) {
+        Optional<JenkinsBuild> buildOpt = repository.findByJobNameAndBuildNumber(jobName, buildNumber);
+        if (buildOpt.isPresent()) {
+            JenkinsBuild build = buildOpt.get();
+            build.setStatus(status);
+            build.setEndTime(LocalDateTime.now());
+            return repository.save(build);
         }
+        return null;
     }
 }
+
