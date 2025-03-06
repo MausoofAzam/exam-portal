@@ -1,33 +1,40 @@
 package com.snort.controller;
 
-
 import com.snort.entities.JenkinsBuild;
-import com.snort.service.JenkinsBuildService;
+import com.snort.repository.JenkinsBuildRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/build")
+@RequestMapping("/jenkins/build")
 public class JenkinsBuildController {
 
     @Autowired
-    private JenkinsBuildService service;
+    private JenkinsBuildRepository buildRepository;
 
-    @PostMapping("/status")
-    public ResponseEntity<String> updateBuildStatus(@RequestBody Map<String, Object> payload) {
-        String jobName = (String) payload.get("jobName");
-        Integer buildNumber = (Integer) payload.get("buildNumber");
-        String status = (String) payload.get("status");
+    @PostMapping("/start")
+    public ResponseEntity<String> startBuild(@RequestBody JenkinsBuild request) {
+        JenkinsBuild build = new JenkinsBuild();
+        build.setJobName(request.getJobName());
+        build.setBuildNumber(request.getBuildNumber());
+        build.setStatus("IN_PROGRESS");
+        buildRepository.save(build);
+        return ResponseEntity.ok("Build started successfully!");
+    }
 
-        if ("IN_PROGRESS".equals(status)) {
-            service.logBuildStart(jobName, buildNumber);
+    @PutMapping("/update")
+    public ResponseEntity<String> updateBuild(@RequestBody JenkinsBuild request) {
+        Optional<JenkinsBuild> optionalBuild = buildRepository.findByJobNameAndBuildNumber(request.getJobName(), request.getBuildNumber());
+        if (optionalBuild.isPresent()) {
+            JenkinsBuild build = optionalBuild.get();
+            build.markCompleted(request.getStatus());
+            buildRepository.save(build);
+            return ResponseEntity.ok("Build updated successfully!");
         } else {
-            service.logBuildCompletion(jobName, buildNumber, status);
+            return ResponseEntity.status(404).body("Build not found!");
         }
-
-        return ResponseEntity.ok("Build status updated successfully.");
     }
 }

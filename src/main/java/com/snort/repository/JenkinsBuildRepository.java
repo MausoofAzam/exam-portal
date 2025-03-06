@@ -9,4 +9,5 @@ public interface JenkinsBuildRepository extends JpaRepository<JenkinsBuild,Long>
 
     Optional<JenkinsBuild> findByJobNameAndBuildNumber(String jobName, Integer buildNumber);
 
+
 }

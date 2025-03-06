@@ -30,4 +30,8 @@ public class JenkinsBuild {
     public JenkinsBuild() {
         this.startTime = LocalDateTime.now();
     }
+    public void markCompleted(String status) {
+        this.status = status;
+        this.endTime = LocalDateTime.now();
+    }
 }
