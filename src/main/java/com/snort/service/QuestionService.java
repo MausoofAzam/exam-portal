@@ -36,6 +36,7 @@ public class QuestionService {
         question.setTitle(questionRequest.getTitle());
 
         questionRepository.save(question);
+        System.out.println("questions saved");
         return question;
 
     }
